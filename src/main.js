@@ -1,37 +1,6 @@
 let shop = document.getElementById("shop");
 
-let shopItemsData = [
-  {
-    id: "M1",
-    name: "casual shirt",
-    price: 45,
-    desc: "Lorem, ipsum dolor sit amet consectetur adipisicing",
-    img: "images/img-1.jpg",
-  },
-  {
-    id: "M2",
-    name: "office shirt",
-    price: 100,
-    desc: "Lorem, ipsum dolor sit amet consectetur adipisicing",
-    img: "images/img-2.jpg",
-  },
-  {
-    id: "M3",
-    name: "T shirt",
-    price: 25,
-    desc: "Lorem, ipsum dolor sit amet consectetur adipisicing",
-    img: "images/img-3.jpg",
-  },
-  {
-    id: "M4",
-    name: "Mens Suit",
-    price: 300,
-    desc: "Lorem, ipsum dolor sit amet consectetur adipisicing",
-    img: "images/img-4.jpg",
-  },
-];
-
-let basket = [];
+let basket = JSON.parse(localStorage.getItem("data")) || [];
 
 // this function allows us to generate the cards from the given data from the arrey useing map function
 
@@ -39,7 +8,8 @@ let generateShop = () => {
   return (shop.innerHTML = shopItemsData
     .map((x) => {
       let { id, name, price, desc, img } = x;
-      console.log(id);
+      let search = basket.find((x) => x.id === id) || [];
+
       return `
     <div id = product-id-${id}class="item">
         <img width="220" src=${img} alt="" />
@@ -50,7 +20,9 @@ let generateShop = () => {
             <h2>$ ${price}</h2>
             <div class="buttons">
               <i onclick="decrement(${id})" class="bi bi-dash-lg"></i>
-              <div id=${id} class="quantity">0</div>
+              <div id=${id} class="quantity">${
+        search.item === undefined ? 0 : search.item
+      }</div>
               <i onclick="increment(${id})" class="bi bi-plus-lg"> </i>
             </div>
           </div>
@@ -77,6 +49,9 @@ let increment = (item) => {
   } else {
     search.item += 1;
   }
+  // this is used for setting the item in to the local storage
+  localStorage.setItem("data", JSON.stringify(basket));
+
   update(selectedItem.id);
 };
 
@@ -85,12 +60,17 @@ let increment = (item) => {
 let decrement = (item) => {
   let selectedItem = item;
   let search = basket.find((x) => x.id === selectedItem.id);
-  if (search.item === 0) return;
+  if (search === undefined) return;
+  else if (search.item === 0) return;
   else {
     search.item -= 1;
   }
-  // console.log(basket);
+
   update(selectedItem.id);
+  basket = basket.filter((x) => x.item !== 0);
+
+  // this is used for setting the item in to the local storage
+  localStorage.setItem("data", JSON.stringify(basket));
 };
 
 // updating the number from the increment and decrement in the card
@@ -103,4 +83,7 @@ let update = (id) => {
 // for updating the item number on the number on the basket
 let calculation = () => {
   let cartIcon = document.getElementById("cartAmount");
+  cartIcon.innerHTML = basket.map((x) => x.item).reduce((x, y) => x + y, 0);
 };
+
+calculation();
